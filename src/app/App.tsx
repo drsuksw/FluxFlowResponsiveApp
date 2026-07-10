@@ -9,7 +9,8 @@ import {
   ShoppingCart, Trash2, Plus, Minus, ShoppingBag,
   FileText, Truck, Store, AlertTriangle, CreditCard,
   Wallet, Building2, Bike, ChevronDown, Package, CircleCheck,
-  ConciergeBell,
+  ConciergeBell, BarChart2, ClipboardList, CalendarCheck,
+  KeyRound, TrendingUp, Timer, CheckCheck, Dot,
 } from "lucide-react";
 
 function cn(...inputs: ClassValue[]) {
@@ -19,7 +20,7 @@ function cn(...inputs: ClassValue[]) {
 const display = "'Playfair Display', Georgia, serif";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type AuthUser = { name: string; email: string; type: "member" | "non-member" };
+type AuthUser = { name: string; email: string; type: "member" | "non-member" | "kasir" };
 type AppPage = "auth" | "beranda" | "produk" | "reservasi" | "pembayaran";
 type CartItem = { productId: number; quantity: number; note: string };
 type PurchaseType = "pickup" | "delivery";
@@ -1107,6 +1108,10 @@ function AuthPage({ onAuth }: { onAuth: (u: AuthUser) => void }) {
   const [regPass, setRegPass] = useState("");
   const [regConfirm, setRegConfirm] = useState("");
   const [error, setError] = useState("");
+  const [showKasirForm, setShowKasirForm] = useState(false);
+  const [kasirEmail, setKasirEmail] = useState("");
+  const [kasirPass, setKasirPass] = useState("");
+  const [kasirError, setKasirError] = useState("");
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1114,6 +1119,17 @@ function AuthPage({ onAuth }: { onAuth: (u: AuthUser) => void }) {
     const raw = loginEmail.split("@")[0].replace(/[^a-zA-Z\s]/g, " ").trim();
     const name = raw.charAt(0).toUpperCase() + raw.slice(1) || "Pengguna";
     onAuth({ name, email: loginEmail, type: "member" });
+  };
+
+  const handleKasirLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setKasirError("");
+    if (!kasirEmail || !kasirPass) { setKasirError("Mohon isi semua field"); return; }
+    if (!kasirEmail.endsWith("@fluxflow.id")) { setKasirError("Email kasir harus domain @fluxflow.id"); return; }
+    if (kasirPass !== "kasir123") { setKasirError("Password salah"); return; }
+    const raw = kasirEmail.split("@")[0].replace(/[^a-zA-Z\s]/g, " ").trim();
+    const name = raw.charAt(0).toUpperCase() + raw.slice(1) || "Kasir";
+    onAuth({ name, email: kasirEmail, type: "kasir" });
   };
 
   const handleRegister = (e: React.FormEvent) => {
@@ -1254,6 +1270,62 @@ function AuthPage({ onAuth }: { onAuth: (u: AuthUser) => void }) {
           <p className="text-xs text-muted-foreground/70 text-center mt-2.5 leading-relaxed">
             Non-Member tidak dapat mengakses fitur Reservasi
           </p>
+
+          {/* Kasir Area */}
+          <div className="mt-6">
+            <button onClick={() => { setShowKasirForm(v => !v); setKasirError(""); }}
+              className={cn(
+                "w-full flex items-center justify-between gap-2 px-4 py-3 rounded-xl border-2 text-sm font-semibold transition-all",
+                showKasirForm
+                  ? "bg-foreground text-primary-foreground border-foreground"
+                  : "bg-card border-border text-foreground hover:border-primary/40 hover:bg-secondary/50"
+              )}>
+              <div className="flex items-center gap-2">
+                <KeyRound size={15} />
+                <span>Area Kasir</span>
+              </div>
+              <ChevronDown size={14} className={cn("transition-transform", showKasirForm && "rotate-180")} />
+            </button>
+
+            {showKasirForm && (
+              <div className="mt-3 p-4 border-2 border-foreground/15 rounded-2xl bg-foreground/5 space-y-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-6 h-6 bg-accent/20 rounded-lg flex items-center justify-center">
+                    <ConciergeBell size={11} className="text-accent" />
+                  </div>
+                  <p className="text-xs font-bold tracking-wide text-foreground/70 uppercase">Login Staff Kasir</p>
+                </div>
+
+                {kasirError && (
+                  <div className="p-2.5 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs flex items-start gap-1.5">
+                    <AlertTriangle size={11} className="mt-0.5 flex-shrink-0" /> {kasirError}
+                  </div>
+                )}
+
+                <form onSubmit={handleKasirLogin} className="space-y-2.5">
+                  <div>
+                    <label className="block text-xs font-medium mb-1 text-foreground/70">Email Kasir</label>
+                    <input type="email" value={kasirEmail} placeholder="nama@fluxflow.id"
+                      onChange={e => { setKasirEmail(e.target.value); setKasirError(""); }}
+                      className="w-full px-3.5 py-2 rounded-xl border border-border bg-card text-sm outline-none focus:ring-2 focus:ring-ring/30 focus:border-ring/50 transition-all placeholder:text-muted-foreground/50" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1 text-foreground/70">Password</label>
+                    <input type="password" value={kasirPass} placeholder="••••••••"
+                      onChange={e => { setKasirPass(e.target.value); setKasirError(""); }}
+                      className="w-full px-3.5 py-2 rounded-xl border border-border bg-card text-sm outline-none focus:ring-2 focus:ring-ring/30 focus:border-ring/50 transition-all placeholder:text-muted-foreground/50" />
+                  </div>
+                  <button type="submit"
+                    className="w-full py-2.5 bg-foreground text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2">
+                    <KeyRound size={13} /> Masuk sebagai Kasir
+                  </button>
+                </form>
+                <p className="text-[10px] text-muted-foreground/60 text-center">
+                  Akses terbatas hanya untuk staff resmi FluxFlow
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -2167,6 +2239,499 @@ function MemberGateModal({ onClose, onLogin }: { onClose: () => void; onLogin: (
   );
 }
 
+// ─── Kasir Types & Mock Data ──────────────────────────────────────────────────
+type KasirTab = "ikhtisar" | "pesanan" | "reservasi";
+type OrderStatus = "menunggu" | "diproses" | "siap" | "selesai";
+type ResStatus = "menunggu" | "terkonfirmasi" | "hadir" | "selesai" | "batal";
+interface MockOrder {
+  id: string; ref: string; customerName: string;
+  items: { productId: number; quantity: number; note: string }[];
+  total: number; method: string; status: OrderStatus;
+  time: string; locationId: number;
+}
+interface MockReservation {
+  id: string; ref: string; name: string; phone: string;
+  partySize: number; locationId: number;
+  time: string; notes: string; status: ResStatus;
+}
+
+const INITIAL_ORDERS: MockOrder[] = [
+  { id:"1", ref:"FF-3X7K2A", customerName:"Budi Santoso",    items:[{productId:1,quantity:2,note:""},{productId:11,quantity:1,note:"Ekstra almond"}], total:96800,  method:"GoPay",  status:"menunggu", time:"09:15", locationId:1 },
+  { id:"2", ref:"FF-8M1P9Q", customerName:"Sari Dewi",       items:[{productId:2,quantity:1,note:"Less sugar"},{productId:12,quantity:1,note:""}],       total:95800,  method:"Kartu",  status:"diproses", time:"09:22", locationId:1 },
+  { id:"3", ref:"FF-5N4R6T", customerName:"Ahmad Fauzi",     items:[{productId:8,quantity:1,note:""},{productId:6,quantity:1,note:"Gula sedikit"}],       total:99000,  method:"Tunai",  status:"siap",     time:"09:30", locationId:1 },
+  { id:"4", ref:"FF-2W9L1E", customerName:"Dewi Rahayu",     items:[{productId:5,quantity:2,note:"Oat milk"},{productId:13,quantity:1,note:""}],          total:149200, method:"OVO",    status:"selesai",  time:"08:45", locationId:1 },
+  { id:"5", ref:"FF-7Y3H8V", customerName:"Reza Pratama",    items:[{productId:3,quantity:1,note:""},{productId:9,quantity:1,note:"Extra cheese"}],       total:128700, method:"DANA",   status:"menunggu", time:"09:45", locationId:1 },
+  { id:"6", ref:"FF-4K2N7X", customerName:"Lia Permata",     items:[{productId:4,quantity:1,note:""},{productId:14,quantity:2,note:"Extra strawberry"}],  total:134200, method:"GoPay",  status:"diproses", time:"09:50", locationId:1 },
+  { id:"7", ref:"FF-9R1M4C", customerName:"Dimas Aditya",    items:[{productId:1,quantity:1,note:"Double shot"},{productId:7,quantity:1,note:""}],         total:73700,  method:"Transfer",status:"selesai", time:"08:20", locationId:1 },
+];
+
+const INITIAL_RESERVATIONS: MockReservation[] = [
+  { id:"1", ref:"RES-A1B2", name:"Anindya Putri",     phone:"+62 812-3456-7890", partySize:4, locationId:1, time:"12:00", notes:"Meja dekat jendela jika ada",           status:"terkonfirmasi" },
+  { id:"2", ref:"RES-C3D4", name:"Rizky Firmansyah",  phone:"+62 813-2345-6789", partySize:2, locationId:1, time:"13:30", notes:"",                                       status:"menunggu"      },
+  { id:"3", ref:"RES-E5F6", name:"Linda Kusuma",       phone:"+62 811-9876-5432", partySize:6, locationId:1, time:"19:00", notes:"Perayaan ulang tahun, siapkan dekorasi", status:"terkonfirmasi" },
+  { id:"4", ref:"RES-G7H8", name:"Hendra Wijaya",      phone:"+62 815-5678-9012", partySize:3, locationId:1, time:"11:00", notes:"Butuh 1 kursi bayi",                     status:"hadir"         },
+  { id:"5", ref:"RES-I9J0", name:"Maya Sari",          phone:"+62 817-3456-7890", partySize:2, locationId:1, time:"09:30", notes:"",                                       status:"selesai"       },
+];
+
+const ORDER_STATUS_CFG: Record<OrderStatus, { label: string; color: string; dot: string }> = {
+  menunggu: { label: "Menunggu",     color: "bg-amber-50 text-amber-700 border-amber-200",  dot: "bg-amber-400"  },
+  diproses: { label: "Diproses",     color: "bg-blue-50  text-blue-700  border-blue-200",   dot: "bg-blue-500"   },
+  siap:     { label: "Siap Diambil", color: "bg-green-50 text-green-700 border-green-200",  dot: "bg-green-500"  },
+  selesai:  { label: "Selesai",      color: "bg-muted    text-muted-foreground border-border", dot: "bg-muted-foreground/40" },
+};
+const RES_STATUS_CFG: Record<ResStatus, { label: string; color: string }> = {
+  menunggu:      { label: "Menunggu",        color: "bg-amber-50 text-amber-700 border-amber-200"  },
+  terkonfirmasi: { label: "Terkonfirmasi",   color: "bg-green-50 text-green-700 border-green-200"  },
+  hadir:         { label: "Hadir",           color: "bg-blue-50  text-blue-700  border-blue-200"   },
+  selesai:       { label: "Selesai",         color: "bg-muted    text-muted-foreground border-border" },
+  batal:         { label: "Dibatalkan",      color: "bg-red-50   text-red-700   border-red-200"    },
+};
+
+// ─── Kasir Dashboard ──────────────────────────────────────────────────────────
+function KasirDashboard({ kasir, onLogout }: { kasir: AuthUser; onLogout: () => void }) {
+  const [tab, setTab] = useState<KasirTab>("ikhtisar");
+  const [orders, setOrders] = useState<MockOrder[]>(INITIAL_ORDERS);
+  const [reservations, setReservations] = useState<MockReservation[]>(INITIAL_RESERVATIONS);
+  const [orderFilter, setOrderFilter] = useState<OrderStatus | "semua">("semua");
+  const [activeLocation, setActiveLocation] = useState(1);
+
+  const advanceOrder = (id: string) => {
+    const next: Record<OrderStatus, OrderStatus> = { menunggu: "diproses", diproses: "siap", siap: "selesai", selesai: "selesai" };
+    setOrders(prev => prev.map(o => o.id === id ? { ...o, status: next[o.status] } : o));
+  };
+  const updateResStatus = (id: string, status: ResStatus) =>
+    setReservations(prev => prev.map(r => r.id === id ? { ...r, status } : r));
+
+  const pendingCount    = orders.filter(o => o.status === "menunggu").length;
+  const processingCount = orders.filter(o => o.status === "diproses").length;
+  const readyCount      = orders.filter(o => o.status === "siap").length;
+  const todayRevenue    = orders.filter(o => o.status === "selesai").reduce((s, o) => s + o.total, 0);
+  const actionableCount = pendingCount + processingCount + readyCount;
+  const resActionCount  = reservations.filter(r => r.status === "menunggu").length;
+
+  const filteredOrders = orderFilter === "semua" ? orders : orders.filter(o => o.status === orderFilter);
+
+  const TABS: { id: KasirTab; label: string; Icon: React.ElementType; badge?: number }[] = [
+    { id: "ikhtisar",  label: "Ikhtisar",  Icon: BarChart2 },
+    { id: "pesanan",   label: "Pesanan",   Icon: ClipboardList, badge: actionableCount },
+    { id: "reservasi", label: "Reservasi", Icon: CalendarCheck, badge: resActionCount  },
+  ];
+
+  const sidebar = (
+    <div className="flex flex-col h-full">
+      {/* Brand */}
+      <div className="px-5 pt-6 pb-4 border-b border-primary-foreground/10">
+        <div className="flex items-center gap-2.5 mb-1.5">
+          <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
+            <Coffee size={15} className="text-primary-foreground" />
+          </div>
+          <span className="text-lg font-bold text-primary-foreground" style={{ fontFamily: display }}>FluxFlow</span>
+        </div>
+        <span className="inline-block text-[10px] font-bold tracking-widest uppercase text-accent bg-accent/20 border border-accent/30 px-2.5 py-0.5 rounded-full">
+          Mode Kasir
+        </span>
+      </div>
+
+      {/* Staff info */}
+      <div className="px-4 py-3 border-b border-primary-foreground/10">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 bg-accent/30 rounded-full flex items-center justify-center flex-shrink-0">
+            <User size={13} className="text-primary-foreground" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-primary-foreground truncate">{kasir.name}</p>
+            <p className="text-[10px] text-primary-foreground/50">Staff Kasir</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 p-3 space-y-0.5">
+        {TABS.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
+              tab === t.id
+                ? "bg-primary-foreground/15 text-primary-foreground"
+                : "text-primary-foreground/50 hover:bg-primary-foreground/10 hover:text-primary-foreground/80"
+            )}>
+            <t.Icon size={16} />
+            <span className="flex-1 text-left">{t.label}</span>
+            {(t.badge ?? 0) > 0 && (
+              <span className="w-5 h-5 bg-accent text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                {t.badge}
+              </span>
+            )}
+          </button>
+        ))}
+      </nav>
+
+      {/* Location */}
+      <div className="px-3 pb-3 border-t border-primary-foreground/10 pt-3">
+        <p className="text-[10px] text-primary-foreground/40 uppercase tracking-widest mb-1.5 px-1">Lokasi Aktif</p>
+        <div className="relative">
+          <select value={activeLocation} onChange={e => setActiveLocation(Number(e.target.value))}
+            className="w-full bg-primary-foreground/10 border border-primary-foreground/20 text-primary-foreground text-xs rounded-xl px-3 py-2 outline-none cursor-pointer appearance-none">
+            {LOCATIONS.map(l => <option key={l.id} value={l.id} className="bg-foreground text-primary-foreground">{l.name}</option>)}
+          </select>
+          <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-primary-foreground/50 pointer-events-none" />
+        </div>
+      </div>
+
+      {/* Logout */}
+      <div className="px-3 pb-4 border-t border-primary-foreground/10 pt-3">
+        <button onClick={onLogout}
+          className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-primary-foreground/50 hover:bg-primary-foreground/10 hover:text-primary-foreground transition-all">
+          <LogOut size={14} /> Keluar dari Mode Kasir
+        </button>
+      </div>
+    </div>
+  );
+
+  const today = new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+
+  return (
+    <div className="flex h-screen bg-background overflow-hidden">
+      {/* Desktop sidebar */}
+      <aside className="hidden lg:flex flex-col w-60 bg-foreground flex-shrink-0 overflow-y-auto">
+        {sidebar}
+      </aside>
+
+      {/* Main area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Mobile top bar */}
+        <div className="lg:hidden flex items-center justify-between px-4 py-3 bg-foreground border-b border-primary-foreground/10">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 bg-accent rounded-lg flex items-center justify-center">
+              <Coffee size={13} className="text-primary-foreground" />
+            </div>
+            <span className="font-bold text-primary-foreground" style={{ fontFamily: display }}>FluxFlow Kasir</span>
+          </div>
+          <button onClick={onLogout} className="p-1.5 text-primary-foreground/60 hover:text-primary-foreground">
+            <LogOut size={16} />
+          </button>
+        </div>
+        {/* Mobile tabs */}
+        <div className="lg:hidden flex bg-card border-b border-border">
+          {TABS.map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              className={cn(
+                "flex-1 flex flex-col items-center gap-0.5 py-2.5 text-xs font-medium relative transition-colors",
+                tab === t.id ? "text-primary" : "text-muted-foreground"
+              )}>
+              <div className="relative">
+                <t.Icon size={17} />
+                {(t.badge ?? 0) > 0 && (
+                  <span className="absolute -top-1.5 -right-2 w-4 h-4 bg-accent text-primary-foreground text-[9px] font-bold rounded-full flex items-center justify-center">
+                    {t.badge}
+                  </span>
+                )}
+              </div>
+              {t.label}
+              {tab === t.id && <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-primary rounded-full" />}
+            </button>
+          ))}
+        </div>
+
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+
+          {/* ── IKHTISAR ── */}
+          {tab === "ikhtisar" && (
+            <div className="max-w-5xl mx-auto space-y-6">
+              <div>
+                <h1 className="text-2xl font-bold" style={{ fontFamily: display }}>Ikhtisar Hari Ini</h1>
+                <p className="text-muted-foreground text-sm mt-0.5 capitalize">{today}</p>
+              </div>
+
+              {/* Stats grid */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { label: "Total Pesanan",          value: String(orders.length),      Icon: ClipboardList, accent: "text-primary",    bg: "bg-primary/10"   },
+                  { label: "Perlu Tindakan",          value: String(actionableCount),    Icon: Timer,         accent: "text-amber-600",  bg: "bg-amber-50"     },
+                  { label: "Siap Diambil",            value: String(readyCount),         Icon: CheckCheck,    accent: "text-green-600",  bg: "bg-green-50"     },
+                  { label: "Pendapatan (Selesai)",    value: formatRupiah(todayRevenue), Icon: TrendingUp,    accent: "text-accent",     bg: "bg-accent/10", small: true },
+                ].map(s => (
+                  <div key={s.label} className="bg-card border border-border rounded-2xl p-4 hover:shadow-sm transition-shadow">
+                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-3", s.bg)}>
+                      <s.Icon size={18} className={s.accent} />
+                    </div>
+                    <p className={cn("font-bold leading-none mb-1", (s as any).small ? "text-base" : "text-2xl", s.accent)}
+                      style={(s as any).small ? {} : { fontFamily: display }}>
+                      {s.value}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{s.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Recent orders + upcoming reservations */}
+              <div className="grid lg:grid-cols-2 gap-6">
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="font-bold text-base" style={{ fontFamily: display }}>Pesanan Aktif</h2>
+                    <button onClick={() => setTab("pesanan")} className="text-xs text-accent hover:underline font-semibold">Lihat Semua →</button>
+                  </div>
+                  <div className="space-y-2.5">
+                    {orders.filter(o => o.status !== "selesai").slice(0, 4).map(order => {
+                      const cfg = ORDER_STATUS_CFG[order.status];
+                      return (
+                        <div key={order.id} className="bg-card border border-border rounded-xl px-4 py-3 flex items-center gap-3 hover:shadow-sm transition-shadow">
+                          <div className={cn("w-2 h-2 rounded-full flex-shrink-0", cfg.dot)} />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-bold">{order.ref}</p>
+                              <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full border", cfg.color)}>{cfg.label}</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-0.5">{order.customerName} · {order.items.length} item · {order.time}</p>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p className="text-sm font-bold text-accent">{formatRupiah(order.total)}</p>
+                            <p className="text-[10px] text-muted-foreground">{order.method}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {orders.filter(o => o.status !== "selesai").length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground text-sm bg-secondary/30 rounded-xl">
+                        <CheckCheck size={28} className="mx-auto mb-2 opacity-30" /> Semua pesanan selesai
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="font-bold text-base" style={{ fontFamily: display }}>Reservasi Hari Ini</h2>
+                    <button onClick={() => setTab("reservasi")} className="text-xs text-accent hover:underline font-semibold">Lihat Semua →</button>
+                  </div>
+                  <div className="space-y-2.5">
+                    {reservations.filter(r => r.status !== "selesai" && r.status !== "batal").slice(0, 4).map(res => {
+                      const cfg = RES_STATUS_CFG[res.status];
+                      return (
+                        <div key={res.id} className="bg-card border border-border rounded-xl px-4 py-3 hover:shadow-sm transition-shadow">
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <div>
+                              <p className="text-sm font-bold">{res.name}</p>
+                              <p className="text-xs text-muted-foreground">{res.partySize} tamu · {res.time} WIB</p>
+                            </div>
+                            <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0", cfg.color)}>{cfg.label}</span>
+                          </div>
+                          {res.notes && (
+                            <p className="text-[11px] text-muted-foreground bg-secondary/60 rounded-lg px-2.5 py-1 mt-1.5 line-clamp-1">
+                              📝 {res.notes}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── PESANAN ── */}
+          {tab === "pesanan" && (
+            <div className="max-w-4xl mx-auto space-y-5">
+              <div>
+                <h1 className="text-2xl font-bold" style={{ fontFamily: display }}>Pesanan Masuk</h1>
+                <p className="text-muted-foreground text-sm">{orders.length} pesanan total hari ini</p>
+              </div>
+
+              {/* Status filter chips */}
+              <div className="flex flex-wrap gap-2">
+                {(["semua","menunggu","diproses","siap","selesai"] as const).map(f => {
+                  const count = f === "semua" ? orders.length : orders.filter(o => o.status === f).length;
+                  const label = f === "semua" ? "Semua" : ORDER_STATUS_CFG[f].label;
+                  return (
+                    <button key={f} onClick={() => setOrderFilter(f)}
+                      className={cn(
+                        "flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all",
+                        orderFilter === f
+                          ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                          : "bg-card border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                      )}>
+                      {label}
+                      <span className={cn(
+                        "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold",
+                        orderFilter === f ? "bg-primary-foreground/20" : "bg-secondary"
+                      )}>{count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {filteredOrders.length === 0 ? (
+                <div className="text-center py-20 text-muted-foreground">
+                  <ClipboardList size={40} className="mx-auto mb-3 opacity-20" />
+                  <p className="text-sm">Tidak ada pesanan dengan status ini</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {filteredOrders.map(order => {
+                    const cfg   = ORDER_STATUS_CFG[order.status];
+                    const loc   = LOCATIONS.find(l => l.id === order.locationId);
+                    const next  = ({ menunggu: "Mulai Proses", diproses: "Tandai Siap", siap: "Selesaikan" } as const)[order.status as "menunggu"|"diproses"|"siap"];
+                    return (
+                      <div key={order.id} className="bg-card border border-border rounded-2xl overflow-hidden hover:shadow-sm transition-shadow">
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-secondary/40">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className={cn("w-2 h-2 rounded-full flex-shrink-0", cfg.dot)} />
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="font-bold text-sm" style={{ fontFamily: display }}>{order.ref}</p>
+                                <span className={cn("text-[10px] font-bold px-2.5 py-0.5 rounded-full border", cfg.color)}>{cfg.label}</span>
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-0.5">{order.customerName} · {order.time} · {loc?.name}</p>
+                            </div>
+                          </div>
+                          <div className="text-right flex-shrink-0 ml-4">
+                            <p className="font-bold text-sm text-accent">{formatRupiah(order.total)}</p>
+                            <p className="text-[10px] text-muted-foreground">{order.method}</p>
+                          </div>
+                        </div>
+                        {/* Items */}
+                        <div className="px-5 py-4 space-y-3">
+                          {order.items.map((item, idx) => {
+                            const p = PRODUCTS.find(x => x.id === item.productId);
+                            if (!p) return null;
+                            return (
+                              <div key={idx} className="flex items-start gap-3">
+                                <div className="w-9 h-9 rounded-xl overflow-hidden bg-amber-100 flex-shrink-0">
+                                  <img src={`https://images.unsplash.com/photo-${p.image}?w=72&h=72&fit=crop&auto=format`}
+                                    alt={p.name} className="w-full h-full object-cover" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex justify-between gap-2">
+                                    <p className="text-sm font-medium">{item.quantity}× {p.name}</p>
+                                    <p className="text-sm font-semibold text-accent flex-shrink-0">{formatRupiah(p.price * item.quantity)}</p>
+                                  </div>
+                                  {item.note && (
+                                    <p className="text-xs text-muted-foreground italic mt-0.5 bg-amber-50 border border-amber-200/50 rounded-lg px-2 py-0.5 w-fit">
+                                      📝 {item.note}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {/* Action */}
+                        {order.status !== "selesai" && (
+                          <div className="px-5 py-3.5 border-t border-border bg-secondary/20 flex justify-end">
+                            <button onClick={() => advanceOrder(order.id)}
+                              className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-sm">
+                              <Check size={14} /> {next}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── RESERVASI ── */}
+          {tab === "reservasi" && (
+            <div className="max-w-4xl mx-auto space-y-5">
+              <div>
+                <h1 className="text-2xl font-bold" style={{ fontFamily: display }}>Reservasi Masuk</h1>
+                <p className="text-muted-foreground text-sm">{reservations.length} reservasi hari ini</p>
+              </div>
+
+              <div className="space-y-4">
+                {reservations.map(res => {
+                  const cfg  = RES_STATUS_CFG[res.status];
+                  const loc  = LOCATIONS.find(l => l.id === res.locationId);
+                  const done = res.status === "selesai" || res.status === "batal";
+                  return (
+                    <div key={res.id} className={cn(
+                      "bg-card border rounded-2xl overflow-hidden hover:shadow-sm transition-shadow",
+                      done ? "border-border opacity-70" : "border-border"
+                    )}>
+                      {/* Header */}
+                      <div className="flex items-start justify-between px-5 py-4 border-b border-border bg-secondary/40">
+                        <div>
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <p className="font-bold text-sm" style={{ fontFamily: display }}>#{res.ref}</p>
+                            <span className={cn("text-[10px] font-bold px-2.5 py-0.5 rounded-full border", cfg.color)}>{cfg.label}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">Hari Ini · {res.time} WIB</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-sm">{res.name}</p>
+                          <p className="text-xs text-muted-foreground">{res.phone}</p>
+                        </div>
+                      </div>
+                      {/* Details */}
+                      <div className="px-5 py-4 grid grid-cols-3 gap-3">
+                        {([
+                          { Icon: Users, label: "Tamu", value: `${res.partySize} orang` },
+                          { Icon: MapPin, label: "Lokasi", value: loc?.name ?? "-" },
+                          { Icon: Clock,  label: "Jam",    value: `${res.time} WIB`   },
+                        ] as const).map(({ Icon, label, value }) => (
+                          <div key={label} className="flex items-start gap-2">
+                            <Icon size={12} className="text-accent mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</p>
+                              <p className="text-sm font-medium leading-snug">{value}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {res.notes && (
+                        <div className="px-5 pb-4">
+                          <div className="flex items-start gap-2 bg-amber-50 border border-amber-200/60 rounded-xl px-3.5 py-2.5">
+                            <Info size={12} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                            <p className="text-xs text-foreground/70 leading-relaxed">{res.notes}</p>
+                          </div>
+                        </div>
+                      )}
+                      {/* Actions */}
+                      {!done && (
+                        <div className="px-5 py-3.5 border-t border-border bg-secondary/20 flex flex-wrap gap-2 justify-end">
+                          {res.status === "menunggu" && (
+                            <button onClick={() => updateResStatus(res.id, "terkonfirmasi")}
+                              className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:opacity-90 transition-all">
+                              <Check size={13} /> Konfirmasi
+                            </button>
+                          )}
+                          {res.status === "terkonfirmasi" && (
+                            <button onClick={() => updateResStatus(res.id, "hadir")}
+                              className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-all">
+                              <Users size={13} /> Tandai Hadir
+                            </button>
+                          )}
+                          {res.status === "hadir" && (
+                            <button onClick={() => updateResStatus(res.id, "selesai")}
+                              className="flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-all">
+                              <CheckCheck size={13} /> Selesaikan
+                            </button>
+                          )}
+                          {res.status !== "hadir" && (
+                            <button onClick={() => updateResStatus(res.id, "batal")}
+                              className="flex items-center gap-1.5 px-4 py-2 border-2 border-red-200 text-red-600 rounded-xl text-sm font-semibold hover:bg-red-50 transition-all">
+                              Batalkan
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── App ──────────────────────────────────────────────────────────────────────
 export default function App() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -2203,6 +2768,7 @@ export default function App() {
   const cartCount = cart.reduce((s, i) => s + i.quantity, 0);
 
   if (!user) return <AuthPage onAuth={u => { setUser(u); setPage("beranda"); }} />;
+  if (user.type === "kasir") return <KasirDashboard kasir={user} onLogout={() => { setUser(null); setPage("auth" as AppPage); }} />;
 
   // PaymentPage fills the whole screen (no Navbar/Footer overlay needed)
   if (page === "pembayaran") {
