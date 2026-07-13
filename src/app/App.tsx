@@ -11,6 +11,8 @@ import {
   Wallet, Building2, Bike, ChevronDown, Package, CircleCheck,
   ConciergeBell, BarChart2, ClipboardList, CalendarCheck,
   KeyRound, TrendingUp, Timer, CheckCheck, Dot,
+  Pencil, ShieldCheck, UserPlus, Eye, EyeOff, Layers,
+  Power, BadgeCheck, ImageIcon,
 } from "lucide-react";
 
 function cn(...inputs: ClassValue[]) {
@@ -20,7 +22,7 @@ function cn(...inputs: ClassValue[]) {
 const display = "'Playfair Display', Georgia, serif";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type AuthUser = { name: string; email: string; type: "member" | "non-member" | "kasir" };
+type AuthUser = { name: string; email: string; type: "member" | "non-member" | "kasir" | "admin" };
 type AppPage = "auth" | "beranda" | "produk" | "reservasi" | "pembayaran";
 type CartItem = { productId: number; quantity: number; note: string };
 type PurchaseType = "pickup" | "delivery";
@@ -1112,6 +1114,11 @@ function AuthPage({ onAuth }: { onAuth: (u: AuthUser) => void }) {
   const [kasirEmail, setKasirEmail] = useState("");
   const [kasirPass, setKasirPass] = useState("");
   const [kasirError, setKasirError] = useState("");
+  const [showAdminForm, setShowAdminForm] = useState(false);
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminPass, setAdminPass] = useState("");
+  const [adminError, setAdminError] = useState("");
+  const [showAdminPass, setShowAdminPass] = useState(false);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1130,6 +1137,17 @@ function AuthPage({ onAuth }: { onAuth: (u: AuthUser) => void }) {
     const raw = kasirEmail.split("@")[0].replace(/[^a-zA-Z\s]/g, " ").trim();
     const name = raw.charAt(0).toUpperCase() + raw.slice(1) || "Kasir";
     onAuth({ name, email: kasirEmail, type: "kasir" });
+  };
+
+  const handleAdminLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdminError("");
+    if (!adminEmail || !adminPass) { setAdminError("Mohon isi semua field"); return; }
+    if (!adminEmail.endsWith("@fluxflow.id")) { setAdminError("Email admin harus domain @fluxflow.id"); return; }
+    if (adminPass !== "admin123") { setAdminError("Password salah"); return; }
+    const raw = adminEmail.split("@")[0].replace(/[^a-zA-Z\s]/g, " ").trim();
+    const name = raw.charAt(0).toUpperCase() + raw.slice(1) || "Admin";
+    onAuth({ name, email: adminEmail, type: "admin" });
   };
 
   const handleRegister = (e: React.FormEvent) => {
@@ -1322,6 +1340,68 @@ function AuthPage({ onAuth }: { onAuth: (u: AuthUser) => void }) {
                 </form>
                 <p className="text-[10px] text-muted-foreground/60 text-center">
                   Akses terbatas hanya untuk staff resmi FluxFlow
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Admin Area */}
+          <div className="mt-3">
+            <button onClick={() => { setShowAdminForm(v => !v); setAdminError(""); setShowKasirForm(false); }}
+              className={cn(
+                "w-full flex items-center justify-between gap-2 px-4 py-3 rounded-xl border-2 text-sm font-semibold transition-all",
+                showAdminForm
+                  ? "bg-amber-700 text-white border-amber-700"
+                  : "bg-card border-border text-foreground hover:border-amber-400/60 hover:bg-amber-50/50"
+              )}>
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={15} />
+                <span>Area Admin</span>
+              </div>
+              <ChevronDown size={14} className={cn("transition-transform", showAdminForm && "rotate-180")} />
+            </button>
+
+            {showAdminForm && (
+              <div className="mt-3 p-4 border-2 border-amber-300/40 rounded-2xl bg-amber-50/60 space-y-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-6 h-6 bg-amber-200 rounded-lg flex items-center justify-center">
+                    <ShieldCheck size={11} className="text-amber-700" />
+                  </div>
+                  <p className="text-xs font-bold tracking-wide text-amber-800 uppercase">Login Administrator</p>
+                </div>
+
+                {adminError && (
+                  <div className="p-2.5 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs flex items-start gap-1.5">
+                    <AlertTriangle size={11} className="mt-0.5 flex-shrink-0" /> {adminError}
+                  </div>
+                )}
+
+                <form onSubmit={handleAdminLogin} className="space-y-2.5">
+                  <div>
+                    <label className="block text-xs font-medium mb-1 text-amber-800/70">Email Admin</label>
+                    <input type="email" value={adminEmail} placeholder="admin@fluxflow.id"
+                      onChange={e => { setAdminEmail(e.target.value); setAdminError(""); }}
+                      className="w-full px-3.5 py-2 rounded-xl border border-amber-300/60 bg-white text-sm outline-none focus:ring-2 focus:ring-amber-300/50 focus:border-amber-400 transition-all placeholder:text-muted-foreground/50" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1 text-amber-800/70">Password</label>
+                    <div className="relative">
+                      <input type={showAdminPass ? "text" : "password"} value={adminPass} placeholder="••••••••"
+                        onChange={e => { setAdminPass(e.target.value); setAdminError(""); }}
+                        className="w-full px-3.5 py-2 pr-10 rounded-xl border border-amber-300/60 bg-white text-sm outline-none focus:ring-2 focus:ring-amber-300/50 focus:border-amber-400 transition-all placeholder:text-muted-foreground/50" />
+                      <button type="button" onClick={() => setShowAdminPass(v => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                        {showAdminPass ? <EyeOff size={14} /> : <Eye size={14} />}
+                      </button>
+                    </div>
+                  </div>
+                  <button type="submit"
+                    className="w-full py-2.5 bg-amber-700 text-white rounded-xl text-sm font-bold hover:bg-amber-800 transition-all flex items-center justify-center gap-2">
+                    <ShieldCheck size={13} /> Masuk sebagai Admin
+                  </button>
+                </form>
+                <p className="text-[10px] text-amber-700/60 text-center">
+                  Akses penuh hanya untuk manajemen FluxFlow
                 </p>
               </div>
             )}
@@ -2240,7 +2320,7 @@ function MemberGateModal({ onClose, onLogin }: { onClose: () => void; onLogin: (
 }
 
 // ─── Kasir Types & Mock Data ──────────────────────────────────────────────────
-type KasirTab = "ikhtisar" | "pesanan" | "reservasi";
+type KasirTab = "dashboard" | "pesanan" | "reservasi";
 type OrderStatus = "menunggu" | "diproses" | "siap" | "selesai";
 type ResStatus = "menunggu" | "terkonfirmasi" | "hadir" | "selesai" | "batal";
 interface MockOrder {
@@ -2289,7 +2369,7 @@ const RES_STATUS_CFG: Record<ResStatus, { label: string; color: string }> = {
 
 // ─── Kasir Dashboard ──────────────────────────────────────────────────────────
 function KasirDashboard({ kasir, onLogout }: { kasir: AuthUser; onLogout: () => void }) {
-  const [tab, setTab] = useState<KasirTab>("ikhtisar");
+  const [tab, setTab] = useState<KasirTab>("dashboard");
   const [orders, setOrders] = useState<MockOrder[]>(INITIAL_ORDERS);
   const [reservations, setReservations] = useState<MockReservation[]>(INITIAL_RESERVATIONS);
   const [orderFilter, setOrderFilter] = useState<OrderStatus | "semua">("semua");
@@ -2312,7 +2392,7 @@ function KasirDashboard({ kasir, onLogout }: { kasir: AuthUser; onLogout: () => 
   const filteredOrders = orderFilter === "semua" ? orders : orders.filter(o => o.status === orderFilter);
 
   const TABS: { id: KasirTab; label: string; Icon: React.ElementType; badge?: number }[] = [
-    { id: "ikhtisar",  label: "Ikhtisar",  Icon: BarChart2 },
+    { id: "dashboard", label: "Dashboard", Icon: BarChart2 },
     { id: "pesanan",   label: "Pesanan",   Icon: ClipboardList, badge: actionableCount },
     { id: "reservasi", label: "Reservasi", Icon: CalendarCheck, badge: resActionCount  },
   ];
@@ -2437,10 +2517,10 @@ function KasirDashboard({ kasir, onLogout }: { kasir: AuthUser; onLogout: () => 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">
 
           {/* ── IKHTISAR ── */}
-          {tab === "ikhtisar" && (
+          {tab === "dashboard" && (
             <div className="max-w-5xl mx-auto space-y-6">
               <div>
-                <h1 className="text-2xl font-bold" style={{ fontFamily: display }}>Ikhtisar Hari Ini</h1>
+                <h1 className="text-2xl font-bold" style={{ fontFamily: display }}>Dashboard</h1>
                 <p className="text-muted-foreground text-sm mt-0.5 capitalize">{today}</p>
               </div>
 
@@ -2732,6 +2812,568 @@ function KasirDashboard({ kasir, onLogout }: { kasir: AuthUser; onLogout: () => 
   );
 }
 
+// ─── Admin Types & Mock Data ──────────────────────────────────────────────────
+type AdminTab = "dashboard" | "menu" | "staf";
+interface MenuItem {
+  id: number; name: string; category: string; price: number;
+  desc: string; image: string; available: boolean;
+}
+interface StaffAccount {
+  id: string; name: string; email: string;
+  role: "kasir"; locationId: number; active: boolean;
+  createdAt: string;
+}
+
+const INITIAL_MENU_ITEMS: MenuItem[] = PRODUCTS.map(p => ({ ...p, available: true }));
+
+const INITIAL_STAFF: StaffAccount[] = [
+  { id:"s1", name:"Budi Hartono",   email:"budi@fluxflow.id",   role:"kasir", locationId:1, active:true,  createdAt:"2024-03-10" },
+  { id:"s2", name:"Sari Wulandari", email:"sari@fluxflow.id",   role:"kasir", locationId:2, active:true,  createdAt:"2024-05-22" },
+  { id:"s3", name:"Ahmad Fauzi",    email:"ahmad@fluxflow.id",  role:"kasir", locationId:3, active:false, createdAt:"2024-07-01" },
+  { id:"s4", name:"Dewi Lestari",   email:"dewi@fluxflow.id",   role:"kasir", locationId:1, active:true,  createdAt:"2024-09-14" },
+];
+
+const EMPTY_MENU: Omit<MenuItem, "id"> = {
+  name: "", category: "Kopi", price: 0, desc: "", image: "", available: true,
+};
+
+// ─── Admin Dashboard ──────────────────────────────────────────────────────────
+function AdminDashboard({ admin, onLogout }: { admin: AuthUser; onLogout: () => void }) {
+  const [tab, setTab] = useState<AdminTab>("dashboard");
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(INITIAL_MENU_ITEMS);
+  const [staff, setStaff] = useState<StaffAccount[]>(INITIAL_STAFF);
+
+  // menu state
+  const [editingMenu, setEditingMenu] = useState<MenuItem | null>(null);
+  const [showMenuForm, setShowMenuForm] = useState(false);
+  const [menuForm, setMenuForm] = useState<Omit<MenuItem, "id">>(EMPTY_MENU);
+  const [menuSearch, setMenuSearch] = useState("");
+
+  // staff state
+  const [showStaffForm, setShowStaffForm] = useState(false);
+  const [staffForm, setStaffForm] = useState({ name: "", email: "", password: "" });
+  const [staffLocationId, setStaffLocationId] = useState(1);
+  const [showPass, setShowPass] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  const openAddMenu = () => {
+    setEditingMenu(null);
+    setMenuForm(EMPTY_MENU);
+    setShowMenuForm(true);
+  };
+  const openEditMenu = (item: MenuItem) => {
+    setEditingMenu(item);
+    setMenuForm({ name: item.name, category: item.category, price: item.price, desc: item.desc, image: item.image, available: item.available });
+    setShowMenuForm(true);
+  };
+  const saveMenu = () => {
+    if (!menuForm.name || !menuForm.price) return;
+    if (editingMenu) {
+      setMenuItems(prev => prev.map(m => m.id === editingMenu.id ? { ...menuForm, id: editingMenu.id } : m));
+    } else {
+      const newId = Math.max(...menuItems.map(m => m.id)) + 1;
+      setMenuItems(prev => [...prev, { ...menuForm, id: newId }]);
+    }
+    setShowMenuForm(false);
+  };
+  const deleteMenu = (id: number) => setMenuItems(prev => prev.filter(m => m.id !== id));
+  const toggleMenuAvailable = (id: number) =>
+    setMenuItems(prev => prev.map(m => m.id === id ? { ...m, available: !m.available } : m));
+
+  const saveStaff = () => {
+    setFormError("");
+    if (!staffForm.name || !staffForm.email || !staffForm.password) { setFormError("Mohon isi semua field"); return; }
+    if (!staffForm.email.endsWith("@fluxflow.id")) { setFormError("Email harus domain @fluxflow.id"); return; }
+    if (staffForm.password.length < 6) { setFormError("Password minimal 6 karakter"); return; }
+    if (staff.find(s => s.email === staffForm.email)) { setFormError("Email sudah terdaftar"); return; }
+    const newStaff: StaffAccount = {
+      id: `s${Date.now()}`, name: staffForm.name, email: staffForm.email,
+      role: "kasir", locationId: staffLocationId, active: true,
+      createdAt: new Date().toISOString().slice(0, 10),
+    };
+    setStaff(prev => [...prev, newStaff]);
+    setStaffForm({ name: "", email: "", password: "" });
+    setShowStaffForm(false);
+  };
+  const toggleStaff = (id: string) => setStaff(prev => prev.map(s => s.id === id ? { ...s, active: !s.active } : s));
+  const deleteStaff = (id: string) => setStaff(prev => prev.filter(s => s.id !== id));
+
+  const filteredMenu = menuItems.filter(m =>
+    m.name.toLowerCase().includes(menuSearch.toLowerCase()) ||
+    m.category.toLowerCase().includes(menuSearch.toLowerCase())
+  );
+
+  const ADMIN_TABS: { id: AdminTab; label: string; Icon: React.ElementType }[] = [
+    { id: "dashboard", label: "Dashboard",   Icon: BarChart2  },
+    { id: "menu",      label: "Kelola Menu", Icon: Layers     },
+    { id: "staf",      label: "Manajemen Staf", Icon: Users   },
+  ];
+
+  const inputCls = "w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-sm outline-none focus:ring-2 focus:ring-ring/30 focus:border-ring/50 transition-all placeholder:text-muted-foreground/50";
+  const labelCls = "block text-xs font-semibold mb-1.5 text-foreground/70 uppercase tracking-wide";
+
+  const adminSidebar = (
+    <div className="flex flex-col h-full">
+      <div className="px-5 pt-6 pb-4 border-b border-primary-foreground/10">
+        <div className="flex items-center gap-2.5 mb-2">
+          <div className="w-8 h-8 bg-amber-400 rounded-lg flex items-center justify-center">
+            <Coffee size={15} className="text-foreground" />
+          </div>
+          <span className="text-lg font-bold text-primary-foreground" style={{ fontFamily: display }}>FluxFlow</span>
+        </div>
+        <span className="inline-block text-[10px] font-bold tracking-widest uppercase text-amber-400 bg-amber-400/20 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
+          Mode Admin
+        </span>
+      </div>
+
+      <div className="px-4 py-3 border-b border-primary-foreground/10">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 bg-amber-400/30 rounded-full flex items-center justify-center flex-shrink-0">
+            <ShieldCheck size={13} className="text-amber-400" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-primary-foreground truncate">{admin.name}</p>
+            <p className="text-[10px] text-primary-foreground/50">Administrator</p>
+          </div>
+        </div>
+      </div>
+
+      <nav className="flex-1 p-3 space-y-0.5">
+        {ADMIN_TABS.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
+              tab === t.id
+                ? "bg-amber-400/20 text-amber-400"
+                : "text-primary-foreground/50 hover:bg-primary-foreground/10 hover:text-primary-foreground/80"
+            )}>
+            <t.Icon size={16} />
+            <span className="flex-1 text-left">{t.label}</span>
+          </button>
+        ))}
+      </nav>
+
+      <div className="px-3 pb-4 border-t border-primary-foreground/10 pt-3">
+        <button onClick={onLogout}
+          className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-primary-foreground/50 hover:bg-primary-foreground/10 hover:text-primary-foreground transition-all">
+          <LogOut size={14} /> Keluar dari Mode Admin
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="flex h-screen bg-background overflow-hidden">
+      {/* Desktop sidebar */}
+      <aside className="hidden lg:flex flex-col w-60 bg-foreground flex-shrink-0 overflow-y-auto">
+        {adminSidebar}
+      </aside>
+
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Mobile top bar */}
+        <div className="lg:hidden flex items-center justify-between px-4 py-3 bg-foreground border-b border-primary-foreground/10">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 bg-amber-400 rounded-lg flex items-center justify-center">
+              <Coffee size={13} className="text-foreground" />
+            </div>
+            <span className="font-bold text-primary-foreground" style={{ fontFamily: display }}>FluxFlow Admin</span>
+          </div>
+          <button onClick={onLogout} className="p-1.5 text-primary-foreground/60 hover:text-primary-foreground">
+            <LogOut size={16} />
+          </button>
+        </div>
+        {/* Mobile tabs */}
+        <div className="lg:hidden flex bg-card border-b border-border">
+          {ADMIN_TABS.map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              className={cn(
+                "flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-medium relative transition-colors",
+                tab === t.id ? "text-amber-700" : "text-muted-foreground"
+              )}>
+              <t.Icon size={17} />
+              {t.label}
+              {tab === t.id && <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-amber-600 rounded-full" />}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+
+          {/* ── DASHBOARD ── */}
+          {tab === "dashboard" && (
+            <div className="max-w-5xl mx-auto space-y-6">
+              <div>
+                <h1 className="text-2xl font-bold" style={{ fontFamily: display }}>Dashboard Admin</h1>
+                <p className="text-muted-foreground text-sm mt-0.5">Selamat datang, {admin.name}. Berikut ikhtisar bisnis FluxFlow.</p>
+              </div>
+
+              {/* Stat cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { label: "Total Produk",        value: String(menuItems.length),            Icon: Layers,      color: "text-primary",    bg: "bg-primary/10"    },
+                  { label: "Produk Aktif",         value: String(menuItems.filter(m=>m.available).length), Icon: BadgeCheck, color: "text-green-600", bg: "bg-green-50"  },
+                  { label: "Total Staf",           value: String(staff.length),               Icon: Users,       color: "text-blue-600",   bg: "bg-blue-50"       },
+                  { label: "Staf Aktif",           value: String(staff.filter(s=>s.active).length), Icon: ShieldCheck, color: "text-amber-600", bg: "bg-amber-50"  },
+                ].map(s => (
+                  <div key={s.label} className="bg-card border border-border rounded-2xl p-4 hover:shadow-sm transition-shadow">
+                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-3", s.bg)}>
+                      <s.Icon size={18} className={s.color} />
+                    </div>
+                    <p className={cn("text-2xl font-bold leading-none mb-1", s.color)} style={{ fontFamily: display }}>{s.value}</p>
+                    <p className="text-xs text-muted-foreground">{s.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Quick actions */}
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="bg-card border border-border rounded-2xl p-5">
+                  <h2 className="font-bold text-base mb-3" style={{ fontFamily: display }}>Aksi Cepat</h2>
+                  <div className="space-y-2">
+                    <button onClick={() => { setTab("menu"); openAddMenu(); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/10 hover:bg-primary/15 text-primary font-semibold text-sm transition-all">
+                      <Plus size={15} /> Tambah Produk Baru
+                    </button>
+                    <button onClick={() => { setTab("staf"); setShowStaffForm(true); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 font-semibold text-sm transition-all">
+                      <UserPlus size={15} /> Buat Akun Staf Kasir
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-card border border-border rounded-2xl p-5">
+                  <h2 className="font-bold text-base mb-3" style={{ fontFamily: display }}>Komposisi Lokasi Staf</h2>
+                  <div className="space-y-2.5">
+                    {LOCATIONS.map(loc => {
+                      const count = staff.filter(s => s.locationId === loc.id && s.active).length;
+                      return (
+                        <div key={loc.id} className="flex items-center gap-3">
+                          <p className="text-sm flex-1 truncate">{loc.name}</p>
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 bg-secondary rounded-full w-20">
+                              <div className="h-2 bg-primary rounded-full transition-all" style={{ width: `${(count / Math.max(staff.length,1)) * 100}%` }} />
+                            </div>
+                            <span className="text-xs font-bold text-muted-foreground w-5 text-right">{count}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Category breakdown */}
+              <div className="bg-card border border-border rounded-2xl p-5">
+                <h2 className="font-bold text-base mb-4" style={{ fontFamily: display }}>Produk per Kategori</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                  {CATEGORIES.filter(c => c !== "Semua").map(cat => {
+                    const count = menuItems.filter(m => m.category === cat).length;
+                    const avail = menuItems.filter(m => m.category === cat && m.available).length;
+                    return (
+                      <div key={cat} className="bg-secondary/40 rounded-xl p-3 text-center">
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">{cat}</p>
+                        <p className="text-xl font-bold text-primary" style={{ fontFamily: display }}>{count}</p>
+                        <p className="text-[10px] text-muted-foreground">{avail} aktif</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── KELOLA MENU ── */}
+          {tab === "menu" && (
+            <div className="max-w-5xl mx-auto space-y-5">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <h1 className="text-2xl font-bold" style={{ fontFamily: display }}>Kelola Menu</h1>
+                  <p className="text-muted-foreground text-sm">{menuItems.length} produk · {menuItems.filter(m=>m.available).length} aktif</p>
+                </div>
+                <button onClick={openAddMenu}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-sm">
+                  <Plus size={14} /> Tambah Produk
+                </button>
+              </div>
+
+              {/* Search */}
+              <div className="relative">
+                <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <input type="text" value={menuSearch} placeholder="Cari produk atau kategori…"
+                  onChange={e => setMenuSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-card text-sm outline-none focus:ring-2 focus:ring-ring/30 focus:border-ring/50 transition-all" />
+              </div>
+
+              {/* Add/Edit form */}
+              {showMenuForm && (
+                <div className="bg-card border-2 border-primary/30 rounded-2xl p-5 shadow-sm">
+                  <h3 className="font-bold text-base mb-4" style={{ fontFamily: display }}>
+                    {editingMenu ? `Edit: ${editingMenu.name}` : "Produk Baru"}
+                  </h3>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelCls}>Nama Produk *</label>
+                      <input type="text" value={menuForm.name} placeholder="Contoh: Espresso Robusta"
+                        onChange={e => setMenuForm(f => ({ ...f, name: e.target.value }))}
+                        className={inputCls} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Kategori *</label>
+                      <div className="relative">
+                        <select value={menuForm.category} onChange={e => setMenuForm(f => ({ ...f, category: e.target.value }))}
+                          className={cn(inputCls, "appearance-none cursor-pointer")}>
+                          {CATEGORIES.filter(c => c !== "Semua").map(c => <option key={c}>{c}</option>)}
+                        </select>
+                        <ChevronDown size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className={labelCls}>Harga (Rp) *</label>
+                      <input type="number" value={menuForm.price || ""} placeholder="35000"
+                        onChange={e => setMenuForm(f => ({ ...f, price: Number(e.target.value) }))}
+                        className={inputCls} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>ID Gambar Unsplash</label>
+                      <input type="text" value={menuForm.image} placeholder="1509042239860-f550ce710b93"
+                        onChange={e => setMenuForm(f => ({ ...f, image: e.target.value }))}
+                        className={inputCls} />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className={labelCls}>Deskripsi</label>
+                      <textarea value={menuForm.desc} placeholder="Deskripsi singkat produk…"
+                        rows={2} onChange={e => setMenuForm(f => ({ ...f, desc: e.target.value }))}
+                        className={cn(inputCls, "resize-none")} />
+                    </div>
+                    <div className="sm:col-span-2 flex items-center gap-3">
+                      <label className="flex items-center gap-2.5 cursor-pointer">
+                        <div onClick={() => setMenuForm(f => ({ ...f, available: !f.available }))}
+                          className={cn(
+                            "w-11 h-6 rounded-full transition-all relative",
+                            menuForm.available ? "bg-green-500" : "bg-muted"
+                          )}>
+                          <div className={cn(
+                            "w-4 h-4 bg-white rounded-full absolute top-1 transition-all shadow",
+                            menuForm.available ? "left-6" : "left-1"
+                          )} />
+                        </div>
+                        <span className="text-sm font-medium">{menuForm.available ? "Tersedia" : "Tidak Tersedia"}</span>
+                      </label>
+                    </div>
+                  </div>
+                  <div className="flex gap-2.5 mt-5 justify-end">
+                    <button onClick={() => setShowMenuForm(false)}
+                      className="px-5 py-2.5 border-2 border-border rounded-xl text-sm font-semibold text-muted-foreground hover:bg-secondary transition-all">
+                      Batal
+                    </button>
+                    <button onClick={saveMenu}
+                      className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:opacity-90 transition-all flex items-center gap-2">
+                      <Check size={14} /> {editingMenu ? "Simpan Perubahan" : "Tambah Produk"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Product list */}
+              <div className="grid gap-3">
+                {filteredMenu.length === 0 ? (
+                  <div className="text-center py-16 text-muted-foreground">
+                    <Layers size={36} className="mx-auto mb-3 opacity-20" />
+                    <p className="text-sm">Tidak ada produk ditemukan</p>
+                  </div>
+                ) : filteredMenu.map(item => (
+                  <div key={item.id} className={cn(
+                    "bg-card border rounded-2xl flex items-center gap-4 p-4 hover:shadow-sm transition-all",
+                    item.available ? "border-border" : "border-border opacity-60"
+                  )}>
+                    {/* Thumbnail */}
+                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-amber-100 flex-shrink-0">
+                      {item.image
+                        ? <img src={`https://images.unsplash.com/photo-${item.image}?w=112&h=112&fit=crop&auto=format`}
+                            alt={item.name} className="w-full h-full object-cover" />
+                        : <div className="w-full h-full flex items-center justify-center"><ImageIcon size={20} className="text-muted-foreground/40" /></div>
+                      }
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="font-bold text-sm leading-snug">{item.name}</p>
+                          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                            <span className="text-[10px] font-semibold text-accent bg-accent/10 border border-accent/20 px-2 py-0.5 rounded-full">{item.category}</span>
+                            <span className={cn(
+                              "text-[10px] font-semibold px-2 py-0.5 rounded-full border",
+                              item.available ? "text-green-700 bg-green-50 border-green-200" : "text-muted-foreground bg-secondary border-border"
+                            )}>
+                              {item.available ? "Tersedia" : "Tidak Tersedia"}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="font-bold text-sm text-accent flex-shrink-0">{formatRupiah(item.price)}</p>
+                      </div>
+                      {item.desc && <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{item.desc}</p>}
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <button onClick={() => toggleMenuAvailable(item.id)}
+                        title={item.available ? "Nonaktifkan" : "Aktifkan"}
+                        className="w-8 h-8 rounded-lg border border-border hover:bg-secondary flex items-center justify-center transition-all text-muted-foreground hover:text-foreground">
+                        <Power size={13} />
+                      </button>
+                      <button onClick={() => openEditMenu(item)}
+                        className="w-8 h-8 rounded-lg border border-border hover:bg-secondary flex items-center justify-center transition-all text-muted-foreground hover:text-blue-600">
+                        <Pencil size={13} />
+                      </button>
+                      <button onClick={() => deleteMenu(item.id)}
+                        className="w-8 h-8 rounded-lg border border-border hover:bg-red-50 flex items-center justify-center transition-all text-muted-foreground hover:text-red-600">
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── MANAJEMEN STAF ── */}
+          {tab === "staf" && (
+            <div className="max-w-4xl mx-auto space-y-5">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <h1 className="text-2xl font-bold" style={{ fontFamily: display }}>Manajemen Staf</h1>
+                  <p className="text-muted-foreground text-sm">{staff.length} akun · {staff.filter(s=>s.active).length} aktif</p>
+                </div>
+                <button onClick={() => { setShowStaffForm(v => !v); setFormError(""); }}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-sm">
+                  <UserPlus size={14} /> Buat Akun Kasir
+                </button>
+              </div>
+
+              {/* Add staff form */}
+              {showStaffForm && (
+                <div className="bg-card border-2 border-amber-300/50 rounded-2xl p-5 shadow-sm">
+                  <h3 className="font-bold text-base mb-4" style={{ fontFamily: display }}>Akun Staf Kasir Baru</h3>
+                  {formError && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm flex items-start gap-2">
+                      <AlertTriangle size={13} className="mt-0.5 flex-shrink-0" /> {formError}
+                    </div>
+                  )}
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelCls}>Nama Lengkap *</label>
+                      <input type="text" value={staffForm.name} placeholder="Nama staf"
+                        onChange={e => { setStaffForm(f => ({ ...f, name: e.target.value })); setFormError(""); }}
+                        className={inputCls} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Email *</label>
+                      <input type="email" value={staffForm.email} placeholder="nama@fluxflow.id"
+                        onChange={e => { setStaffForm(f => ({ ...f, email: e.target.value })); setFormError(""); }}
+                        className={inputCls} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Password *</label>
+                      <div className="relative">
+                        <input type={showPass ? "text" : "password"} value={staffForm.password} placeholder="Min. 6 karakter"
+                          onChange={e => { setStaffForm(f => ({ ...f, password: e.target.value })); setFormError(""); }}
+                          className={cn(inputCls, "pr-10")} />
+                        <button type="button" onClick={() => setShowPass(v => !v)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                          {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className={labelCls}>Lokasi Penugasan *</label>
+                      <div className="relative">
+                        <select value={staffLocationId} onChange={e => setStaffLocationId(Number(e.target.value))}
+                          className={cn(inputCls, "appearance-none cursor-pointer")}>
+                          {LOCATIONS.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+                        </select>
+                        <ChevronDown size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                      </div>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200/60 rounded-xl text-xs text-amber-700">
+                        <Info size={12} className="flex-shrink-0" />
+                        Staf akan dapat login ke Mode Kasir menggunakan email dan password yang dibuat di sini.
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2.5 mt-5 justify-end">
+                    <button onClick={() => { setShowStaffForm(false); setFormError(""); }}
+                      className="px-5 py-2.5 border-2 border-border rounded-xl text-sm font-semibold text-muted-foreground hover:bg-secondary transition-all">
+                      Batal
+                    </button>
+                    <button onClick={saveStaff}
+                      className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:opacity-90 transition-all flex items-center gap-2">
+                      <UserPlus size={14} /> Buat Akun
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Staff list */}
+              <div className="space-y-3">
+                {staff.map(s => {
+                  const loc = LOCATIONS.find(l => l.id === s.locationId);
+                  return (
+                    <div key={s.id} className={cn(
+                      "bg-card border rounded-2xl p-4 flex items-center gap-4 hover:shadow-sm transition-all",
+                      s.active ? "border-border" : "border-border opacity-60"
+                    )}>
+                      <div className={cn(
+                        "w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm",
+                        s.active ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground"
+                      )}>
+                        {s.name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-bold text-sm">{s.name}</p>
+                          <span className={cn(
+                            "text-[10px] font-bold px-2 py-0.5 rounded-full border",
+                            s.active ? "text-green-700 bg-green-50 border-green-200" : "text-muted-foreground bg-secondary border-border"
+                          )}>
+                            {s.active ? "Aktif" : "Nonaktif"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">{s.email}</p>
+                        <div className="flex items-center gap-3 mt-1">
+                          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <MapPin size={9} /> {loc?.name ?? "-"}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <Calendar size={9} /> Dibuat {s.createdAt}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <button onClick={() => toggleStaff(s.id)}
+                          title={s.active ? "Nonaktifkan" : "Aktifkan"}
+                          className={cn(
+                            "w-8 h-8 rounded-lg border flex items-center justify-center transition-all text-sm font-bold",
+                            s.active
+                              ? "border-border hover:bg-red-50 hover:border-red-200 text-muted-foreground hover:text-red-600"
+                              : "border-border hover:bg-green-50 hover:border-green-200 text-muted-foreground hover:text-green-600"
+                          )}>
+                          <Power size={13} />
+                        </button>
+                        <button onClick={() => deleteStaff(s.id)}
+                          className="w-8 h-8 rounded-lg border border-border hover:bg-red-50 flex items-center justify-center transition-all text-muted-foreground hover:text-red-600">
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── App ──────────────────────────────────────────────────────────────────────
 export default function App() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -2769,6 +3411,7 @@ export default function App() {
 
   if (!user) return <AuthPage onAuth={u => { setUser(u); setPage("beranda"); }} />;
   if (user.type === "kasir") return <KasirDashboard kasir={user} onLogout={() => { setUser(null); setPage("auth" as AppPage); }} />;
+  if (user.type === "admin") return <AdminDashboard admin={user} onLogout={() => { setUser(null); setPage("auth" as AppPage); }} />;
 
   // PaymentPage fills the whole screen (no Navbar/Footer overlay needed)
   if (page === "pembayaran") {
